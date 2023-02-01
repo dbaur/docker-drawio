@@ -16,7 +16,7 @@ echo "Init PreConfig.js"
 echo "(function() {" > $CATALINA_HOME/webapps/draw/js/PreConfig.js
 echo "  try {" >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
 echo "	    var s = document.createElement('meta');" >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
-echo "	    s.setAttribute('content', '${DRAWIO_CSP_HEADER:-default-src \'self\'; script-src \'self\' https://storage.googleapis.com https://apis.google.com https://docs.google.com https://code.jquery.com \'unsafe-inline\'; connect-src \'self\' https://*.dropboxapi.com https://api.trello.com https://api.github.com https://raw.githubusercontent.com https://*.googleapis.com https://*.googleusercontent.com https://graph.microsoft.com https://*.1drv.com https://*.sharepoint.com https://gitlab.com https://*.google.com https://fonts.gstatic.com https://fonts.googleapis.com; img-src * data:; media-src * data:; font-src * about:; style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com; frame-src \'self\' https://*.google.com;}');" >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
+echo "	    s.setAttribute('content', '${DRAWIO_CSP_HEADER:-default-src \'self\'; script-src \'self\' https://storage.googleapis.com https://apis.google.com https://docs.google.com https://code.jquery.com \'unsafe-inline\'; connect-src \'self\' ${DRAWIO_GITHUB_URL} https://*.dropboxapi.com https://api.trello.com https://api.github.com https://raw.githubusercontent.com https://*.googleapis.com https://*.googleusercontent.com https://graph.microsoft.com https://*.1drv.com https://*.sharepoint.com https://gitlab.com https://*.google.com https://fonts.gstatic.com https://fonts.googleapis.com; img-src * data:; media-src * data:; font-src * about:; style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com; frame-src \'self\' https://*.google.com;}');" >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
 echo "	    s.setAttribute('http-equiv', 'Content-Security-Policy');" >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
 echo " 	    var t = document.getElementsByTagName('meta')[0];" >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
 echo "      t.parentNode.insertBefore(s, t);" >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
@@ -52,7 +52,6 @@ fi
 
 #Disable unsupported services
 echo "urlParams['db'] = '0'; //dropbox" >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
-echo "urlParams['gh'] = '0'; //github" >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
 echo "urlParams['tr'] = '0'; //trello" >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
 
 #Google Drive 
@@ -99,6 +98,21 @@ else
     echo -n "${DRAWIO_GITLAB_URL}/oauth/token" > $CATALINA_HOME/webapps/draw/WEB-INF/gitlab_auth_url
     echo -n "${DRAWIO_GITLAB_ID}" > $CATALINA_HOME/webapps/draw/WEB-INF/gitlab_client_id
     echo -n "${DRAWIO_GITLAB_SECRET}" > $CATALINA_HOME/webapps/draw/WEB-INF/gitlab_client_secret
+fi
+
+#GitHub
+if [[ -z "${DRAWIO_GITHUB_ID}" ]]; then
+    echo "urlParams['gh'] = '0'; //GitHub"  >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
+else
+    #Github url and id for the editor
+    echo "window.DRAWIO_GITHUB_URL = '${DRAWIO_GITHUB_URL}'; " >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
+    echo "window.DRAWIO_GITHUB_API_URL = '${DRAWIO_GITHUB_API_URL}'; " >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
+    echo "window.DRAWIO_GITHUB_ID = '${DRAWIO_GITHUB_ID}'; " >> $CATALINA_HOME/webapps/draw/js/PreConfig.js
+
+    #Github server flow auth
+    echo -n "${DRAWIO_GITHUB_URL}/login/oauth/access_token" > $CATALINA_HOME/webapps/draw/WEB-INF/github_auth_url
+    echo -n "${DRAWIO_GITHUB_ID}" > $CATALINA_HOME/webapps/draw/WEB-INF/github_client_id
+    echo -n "${DRAWIO_GITHUB_SECRET}" > $CATALINA_HOME/webapps/draw/WEB-INF/github_client_secret
 fi
 
 cat $CATALINA_HOME/webapps/draw/js/PreConfig.js
